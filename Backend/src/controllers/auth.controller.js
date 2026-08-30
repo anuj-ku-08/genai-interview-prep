@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import BlacklistToken from "../models/blacklist.model.js";
 
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -70,6 +71,39 @@ export const loginUser = async (req, res) => {
       });
   } catch (error) {
     console.error("Login Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const token = req.token || req.cookies?.token;
+
+    if (token) {
+      await BlacklistToken.create({ token });
+    }
+
+    res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .status(200)
+      .json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    res.status(200).json({
+      user: req.user,
+    });
+  } catch (error) {
+    console.error("GetMe Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
