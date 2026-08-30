@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
 import InterviewReport from "../models/interview.model.js";
 import { generateInterviewReportFromAI } from "../services/ai.service.js";
+import { generateResumePdfBuffer } from "../services/pdf.service.js";
 
 export const createInterviewReport = async (req, res) => {
   try {
@@ -85,5 +86,39 @@ export const getReportById = async (req, res) => {
   } catch (error) {
     console.error("Get Report By ID Error:", error);
     res.status(500).json({ message: "Error fetching report details" });
+  }
+};
+
+export const downloadReportPdf = async (req, res) => {
+  try {
+    const report = await InterviewReport.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const pdfBuffer = await generateResumePdfBuffer({
+      fullName: req.user.fullName,
+      email: req.user.email,
+      jobRole: report.jobRole,
+      matchedSkills: report.skillGapAnalysis?.matchedSkills || [],
+      missingSkills: report.skillGapAnalysis?.missingSkills || [],
+      recommendations: report.skillGapAnalysis?.recommendations || [],
+      technicalQuestions: report.technicalQuestions || [],
+    });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename=Interview_Prep_${report.jobRole.replace(/\s+/g, "_")}.pdf`,
+      "Content-Length": pdfBuffer.length,
+    });
+
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("PDF Download Error:", error);
+    res.status(500).json({ message: "Error generating PDF export" });
   }
 };

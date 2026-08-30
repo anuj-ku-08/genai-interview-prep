@@ -1,11 +1,27 @@
+import { downloadPdfReport } from "../services/interview.service";
+
 export default function ReportCard({ report }) {
   if (!report) return null;
 
-  const { skillGapAnalysis, technicalQuestions, behavioralQuestions, jobRole } = report;
+  const { _id,skillGapAnalysis, technicalQuestions, behavioralQuestions, jobRole } = report;
 
   return (
     <div style={{ marginTop: "30px", textAlign: "left", maxWidth: "900px", margin: "30px auto" }}>
       <h2>Analysis & Interview Prep: {jobRole}</h2>
+      <button
+          onClick={() => downloadPdfReport(_id, jobRole)}
+          style={{
+            backgroundColor: "#28a745",
+            color: "#fff",
+            padding: "10px 18px",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          ⬇ Download PDF Export
+        </button>
 
       {/* Skill Gap Analysis */}
       <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "20px", marginBottom: "20px" }}>
