@@ -1,6 +1,9 @@
 import fs from "fs";
-import pdfParse from "pdf-parse";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 import InterviewReport from "../models/interview.model.js";
+import { generateInterviewReportFromAI } from "../services/ai.service.js";
 
 export const createInterviewReport = async (req, res) => {
   try {
@@ -15,24 +18,43 @@ export const createInterviewReport = async (req, res) => {
       return res.status(400).json({ message: "Resume PDF is required" });
     }
 
-    // Read and parse PDF text
+    // 1. Parse PDF
     const dataBuffer = fs.readFileSync(file.path);
     const parsedPdf = await pdfParse(dataBuffer);
     const resumeText = parsedPdf.text;
 
-    // Clean up uploaded file after reading
+    // Remove temporary file
     fs.unlinkSync(file.path);
 
-    // Initial placeholder response before Day 5 Gemini integration
-    res.status(200).json({
-      message: "Resume extracted successfully. Ready for AI processing.",
+    if (!resumeText || resumeText.trim().length === 0) {
+      return res.status(400).json({ message: "Could not extract text from the PDF" });
+    }
+
+    // 2. Call Gemini AI Service
+    const aiAnalysis = await generateInterviewReportFromAI({
       jobRole,
       jobDescription,
-      extractedTextLength: resumeText.length,
+      resumeText,
+    });
+
+    // 3. Save to Database
+    const report = await InterviewReport.create({
+      user: req.user._id,
+      jobRole,
+      jobDescription: jobDescription || "",
+      resumeText,
+      skillGapAnalysis: aiAnalysis.skillGapAnalysis,
+      technicalQuestions: aiAnalysis.technicalQuestions,
+      behavioralQuestions: aiAnalysis.behavioralQuestions,
+    });
+
+    res.status(201).json({
+      message: "Interview report generated successfully",
+      report,
     });
   } catch (error) {
-    console.error("Interview Controller Error:", error);
-    res.status(500).json({ message: "Error processing interview report" });
+    console.error("Interview Generation Error:", error);
+    res.status(500).json({ message: "Error generating interview report" });
   }
 };
 
@@ -45,5 +67,23 @@ export const getMyReports = async (req, res) => {
   } catch (error) {
     console.error("Get Reports Error:", error);
     res.status(500).json({ message: "Error fetching reports" });
+  }
+};
+
+export const getReportById = async (req, res) => {
+  try {
+    const report = await InterviewReport.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    res.status(200).json({ report });
+  } catch (error) {
+    console.error("Get Report By ID Error:", error);
+    res.status(500).json({ message: "Error fetching report details" });
   }
 };
