@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
+import interviewRoutes from "./routes/interview.routes.js";
 
 const app = express();
 
