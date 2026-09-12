@@ -10,6 +10,12 @@ import {
 
 const router = express.Router();
 
+router.get("/generate", (req, res) => {
+  res.status(405).json({
+    message: "This endpoint expects a POST request to generate an interview report.",
+  });
+});
+
 router.post("/generate", protect, upload.single("resume"), createInterviewReport);
 router.get("/my-reports", protect, getMyReports);
 router.get("/report/:id", protect, getReportById);

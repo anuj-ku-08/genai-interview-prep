@@ -1,6 +1,9 @@
+import "dotenv/config";
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 const interviewReportSchema = {
   type: Type.OBJECT,
@@ -59,6 +62,10 @@ export const generateInterviewReportFromAI = async ({
   jobDescription,
   resumeText,
 }) => {
+  if (!apiKey || !ai) {
+    throw new Error("GEMINI_API_KEY is missing. Add a valid Google Gemini API key to Backend/.env.");
+  }
+
   const prompt = `
 You are an expert technical recruiter and hiring manager.
 Analyze the following candidate's resume against the target Job Role and optional Job Description.
@@ -76,7 +83,7 @@ Generate:
 `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: MODEL_NAME,
     contents: prompt,
     config: {
       responseMimeType: "application/json",

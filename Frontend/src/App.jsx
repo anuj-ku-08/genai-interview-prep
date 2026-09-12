@@ -11,33 +11,31 @@ export default function App() {
   const { user } = useAuth();
 
   return (
-    <Routes>
-      {/* Guest / Public Routes */}
-      <Route
-        path="/login"
-        element={user ? <Navigate to="/" replace /> : <Login />}
-      />
-      <Route
-        path="/register"
-        element={user ? <Navigate to="/" replace /> : <Register />}
-      />
+    <InterviewProvider>
+      <Routes>
+        {/* Guest / Public Routes */}
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" replace /> : <Login />}
+        />
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/" replace /> : <Register />}
+        />
 
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Home />} />
-      </Route>
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Home />} />
+        </Route>
 
-      <Route
-        path="/interview"
-        element={
-          <InterviewProvider>
-            <Interview />
-          </InterviewProvider>
-        }
-      />
+        <Route
+          path="/interview"
+          element={<Interview />}
+        />
 
-      {/* Catch-all Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Catch-all Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </InterviewProvider>
   );
 }

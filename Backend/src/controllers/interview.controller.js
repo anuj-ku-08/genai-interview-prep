@@ -1,10 +1,10 @@
 import fs from "fs";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
+import * as pdfParseModule from "pdf-parse";
 import InterviewReport from "../models/interview.model.js";
 import { generateInterviewReportFromAI } from "../services/ai.service.js";
 import { generateResumePdfBuffer } from "../services/pdf.service.js";
+
+const pdfParse = pdfParseModule.default ?? pdfParseModule;
 
 export const createInterviewReport = async (req, res) => {
   try {
@@ -55,7 +55,9 @@ export const createInterviewReport = async (req, res) => {
     });
   } catch (error) {
     console.error("Interview Generation Error:", error);
-    res.status(500).json({ message: "Error generating interview report" });
+    res.status(500).json({
+      message: error.message || "Error generating interview report",
+    });
   }
 };
 

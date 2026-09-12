@@ -11,7 +11,11 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await register(formData);
+      const payload = {
+        ...formData,
+        email: String(formData.email).trim().toLowerCase(),
+      };
+      await register(payload);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");

@@ -11,7 +11,11 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(formData);
+      const payload = {
+        ...formData,
+        email: String(formData.email).trim().toLowerCase(),
+      };
+      await login(payload);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
